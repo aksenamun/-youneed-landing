@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/task/:id",
+      "destination": "/api/task/:id"
+    },
+    {
+      "source": "/task/:id/",
+      "destination": "/api/task/:id"
+    }
+  ]
+}
