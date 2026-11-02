@@ -5,6 +5,20 @@ const PAGE_SIZE = 20;
 
 const LISTING_STATUSES = ['draft', 'active', 'paused', 'in_progress', 'completed', 'cancelled'];
 const REPORT_STATUSES = ['open', 'reviewing', 'resolved', 'rejected'];
+const OFFER_STATUSES = ['pending', 'accepted', 'declined'];
+const DEAL_STATUSES = ['pending', 'accepted', 'in_progress', 'provider_completed', 'waiting_client', 'completed', 'cancelled', 'disputed'];
+const CRM_MIGRATION = 'The CRM functions are not available in this session, so platform-wide records stay hidden.';
+const USER_ACTIVITY = [
+  ['listings_task', 'Listings published'],
+  ['listings_service', 'Services published'],
+  ['offers_sent', 'Offers sent'],
+  ['offers_received', 'Offers received'],
+  ['deals_client', 'Deals as a client'],
+  ['deals_provider', 'Deals as a provider'],
+  ['reports_submitted', 'Reports submitted'],
+  ['reports_received', 'Reports received'],
+  ['disputes', 'Disputes'],
+];
 const SUGGESTION_FILTERS = [
   { value: 'all', label: 'All' },
   { value: 'new', label: 'New' },
@@ -16,8 +30,9 @@ const SECTION_TITLES = {
   dashboard: 'Dashboard',
   users: 'Users',
   listings: 'Listings',
-  reports: 'Reports',
+  offers: 'Offers',
   deals: 'Deals',
+  reports: 'Reports',
   categories: 'Categories',
   suggestions: 'Category Suggestions',
   verification: 'Identity Verification',
@@ -54,9 +69,11 @@ const state = {
   section: 'dashboard',
   adminSince: null,
   user: null,
-  users: { query: '', page: 1, selected: null },
+  users: { query: '', page: 1, selected: null, activityPage: {} },
   listings: { query: '', category: '', status: 'all', page: 1, selected: null },
-  reports: { status: 'all', page: 1, selected: null, note: '', nextStatus: 'open' },
+  offers: { query: '', status: 'all', user: '', from: '', to: '', page: 1, selected: null },
+  deals: { query: '', status: 'all', user: '', from: '', to: '', page: 1, selected: null, messagesPage: 1 },
+  reports: { query: '', status: 'all', user: '', page: 1, selected: null, note: '', nextStatus: 'open', noteLoaded: false },
   suggestions: { query: '', status: 'all', page: 1, selected: null },
   verification: { query: '', status: 'all', provider: 'all', page: 1, selected: null },
 };
@@ -118,6 +135,68 @@ function displayName(profile) {
   if (!profile) return '—';
   if (profile.account_type === 'business') return profile.business_name || profile.full_name || '—';
   return profile.full_name || profile.business_name || '—';
+}
+
+function named(name, id) {
+  return name || id || '—';
+}
+
+function linkButton(action, id, label) {
+  if (id == null || id === '') return '—';
+  return `<button class="linkish" type="button" data-action="${action}" data-id="${escapeHtml(id)}">${escapeHtml(named(label, id))}</button>`;
+}
+
+function uuidOrNull(value) {
+  const text = String(value || '').trim();
+  if (!text) return null;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text) ? text : undefined;
+}
+
+function dateRange(from, to) {
+  const start = from ? new Date(`${from}T00:00:00`) : null;
+  const end = to ? new Date(`${to}T00:00:00`) : null;
+  if (end && !Number.isNaN(end.getTime())) end.setDate(end.getDate() + 1);
+  return {
+    created_from: start && !Number.isNaN(start.getTime()) ? start.toISOString() : null,
+    created_to: end && !Number.isNaN(end.getTime()) ? end.toISOString() : null,
+  };
+}
+
+function money(amount, currency) {
+  if (amount == null || amount === '') return '—';
+  return `${amount} ${currency || ''}`.trim();
+}
+
+function fact(label, value) {
+  return `<div class="fact"><span>${escapeHtml(label)}</span><b>${escapeHtml(value || '—')}</b></div>`;
+}
+
+function identityText(card) {
+  if (!card || card.identity_available !== true) return 'Identity tables are not available';
+  if (card.identity_verified === true) return `Verified ${formatWhen(card.identity_verified_at)}`;
+  return 'Not verified';
+}
+
+function openRecord(section, id) {
+  if (section === 'users') {
+    state.users.selected = id;
+    state.users.activityPage = {};
+  } else if (section === 'listings') {
+    state.listings.selected = id;
+  } else if (section === 'offers') {
+    state.offers.selected = integerId(id);
+  } else if (section === 'deals') {
+    state.deals.selected = id;
+    state.deals.messagesPage = 1;
+  } else if (section === 'reports') {
+    state.reports.selected = integerId(id);
+    state.reports.noteLoaded = false;
+  }
+  setSection(section);
+}
+
+function integerId(value) {
+  return reportId(value);
 }
 
 function readSession() {
@@ -246,12 +325,13 @@ function pageResult(data) {
   };
 }
 
-function pager(page, total, action) {
+function pager(page, total, action, extra) {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const attrs = extra ? ` ${extra}` : '';
   return `<div class="pager">
-    <button class="ghost" data-action="${action}" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>Previous</button>
+    <button class="ghost" data-action="${action}" data-page="${page - 1}"${attrs} ${page <= 1 ? 'disabled' : ''}>Previous</button>
     <span class="muted">${page} / ${pages} · ${total} rows</span>
-    <button class="ghost" data-action="${action}" data-page="${page + 1}" ${page >= pages ? 'disabled' : ''}>Next</button>
+    <button class="ghost" data-action="${action}" data-page="${page + 1}"${attrs} ${page >= pages ? 'disabled' : ''}>Next</button>
   </div>`;
 }
 
@@ -266,8 +346,9 @@ async function renderSection() {
     if (state.section === 'dashboard') await renderDashboard(root);
     else if (state.section === 'users') await renderUsers(root);
     else if (state.section === 'listings') await renderListings(root);
-    else if (state.section === 'reports') await renderReports(root);
+    else if (state.section === 'offers') await renderOffers(root);
     else if (state.section === 'deals') await renderDeals(root);
+    else if (state.section === 'reports') await renderReports(root);
     else if (state.section === 'categories') await renderCategories(root);
     else if (state.section === 'suggestions') await renderSuggestions(root);
     else if (state.section === 'verification') await renderVerification(root);
@@ -328,20 +409,10 @@ async function renderUsers(root) {
     page: state.users.page,
     page_size: PAGE_SIZE,
   }));
-  if (state.users.selected && !result.rows.some((row) => row.id === state.users.selected.id)) {
-    state.users.selected = null;
-  }
-  const selected = result.rows.find((row) => state.users.selected && row.id === state.users.selected.id) || null;
-  let ownerListings = [];
-  if (selected) {
-    ownerListings = pageResult(await rpc('admin_list_listings', {
-      search: null,
-      category: null,
-      status: null,
-      owner_id: selected.id,
-      page: 1,
-      page_size: PAGE_SIZE,
-    })).rows;
+  const selectedId = state.users.selected;
+  let detail = '';
+  if (selectedId) {
+    detail = await userDetail(selectedId);
   }
 
   root.innerHTML = `
@@ -349,7 +420,7 @@ async function renderUsers(root) {
       <input id="user-search" value="${escapeHtml(state.users.query)}" placeholder="Search name">
     </div>
     ${result.rows.length ? `<div class="table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Role</th><th>Status</th><th>Registered</th></tr></thead><tbody>
-      ${result.rows.map((profile) => `<tr data-action="select-user" data-id="${escapeHtml(profile.id)}" aria-selected="${selected && selected.id === profile.id}">
+      ${result.rows.map((profile) => `<tr data-action="select-user" data-id="${escapeHtml(profile.id)}" aria-selected="${profile.id === selectedId}">
         <td>${escapeHtml(displayName(profile))}</td>
         <td>${escapeHtml(profile.account_type || '—')}</td>
         <td>${escapeHtml(profile.role || '—')}</td>
@@ -358,22 +429,87 @@ async function renderUsers(root) {
       </tr>`).join('')}
     </tbody></table></div>` : '<p class="empty">No matching users.</p>'}
     ${pager(result.page, result.total, 'users-page')}
-    ${selected ? `<section class="panel"><h2>${escapeHtml(displayName(selected))}</h2>
-      <p class="muted">Account id ${escapeHtml(selected.id)}</p>
-      <p>Type ${escapeHtml(selected.account_type || '—')} · Role ${escapeHtml(selected.role || '—')} · ${selected.is_active === false ? 'Inactive' : 'Active'}</p>
-      <p class="muted">Registered ${escapeHtml(formatWhen(selected.created_at))}</p>
-      ${panelMessage('Account activation cannot be changed here. There is no admin function that updates account status.')}
-      <h3>Listings</h3>
-      ${ownerListings.length ? `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Status</th></tr></thead><tbody>
-        ${ownerListings.map((listing) => `<tr><td>${escapeHtml(listing.title)}</td><td>${badge(listing.status)}</td></tr>`).join('')}
-      </tbody></table></div>` : '<p class="empty">No listings for this account.</p>'}
-    </section>` : panelMessage('Select a user to see details.')}`;
+    ${detail || panelMessage('Select a user to see details.')}`;
 
   $('user-search').addEventListener('change', (event) => {
     state.users.query = event.target.value.trim();
     state.users.page = 1;
     renderSection();
   });
+}
+
+async function userDetail(userId) {
+  let card = null;
+  try {
+    card = await rpc('admin_user_card', { target_user: userId });
+  } catch (error) {
+    if (!missingRpc(error)) throw error;
+  }
+
+  if (!card) {
+    const listings = pageResult(await rpc('admin_list_listings', {
+      search: null,
+      category: null,
+      status: null,
+      owner_id: userId,
+      page: 1,
+      page_size: PAGE_SIZE,
+    })).rows;
+    return `<section class="panel"><h2>User</h2>
+      <p class="muted">Account id ${escapeHtml(userId)}</p>
+      ${panelMessage(CRM_MIGRATION)}
+      ${panelMessage('Account activation cannot be changed here. There is no admin function that updates account status.')}
+      <h3>Listings</h3>
+      ${listings.length ? `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Status</th></tr></thead><tbody>
+        ${listings.map((listing) => `<tr><td>${linkButton('open-listing', listing.id, listing.title)}</td><td>${badge(listing.status)}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="empty">No listings for this account.</p>'}
+    </section>`;
+  }
+
+  const activity = await Promise.all(USER_ACTIVITY.map(async ([kind, title]) => {
+    const page = state.users.activityPage[kind] || 1;
+    const result = pageResult(await rpc('admin_user_activity', {
+      target_user: userId,
+      kind,
+      page,
+      page_size: PAGE_SIZE,
+    }));
+    return { kind, title, result };
+  }));
+  const identity = identityText(card);
+
+  return `<section class="panel"><h2>${escapeHtml(displayName(card))}</h2>
+    <div class="facts">
+      ${fact('User ID', card.id)}
+      ${fact('Full name', card.full_name)}
+      ${fact('Email', card.email)}
+      ${fact('Phone', card.phone)}
+      ${fact('Business phone', card.business_phone)}
+      ${fact('Sign-in phone', card.sign_in_phone)}
+      ${fact('Address', card.address)}
+      ${fact('Business address', card.business_address)}
+      ${fact('City', card.city)}
+      ${fact('District', card.district)}
+      ${fact('Country', 'Not stored on the profile')}
+      ${fact('Registered', formatWhen(card.created_at))}
+      ${fact('Profile updated', formatWhen(card.updated_at))}
+      ${fact('Last sign-in', formatWhen(card.last_sign_in_at))}
+      ${fact('Account type', card.account_type)}
+      ${fact('Role', card.role)}
+      ${fact('Account status', card.is_active === false ? 'Inactive' : 'Active')}
+      ${fact('Availability', card.availability)}
+      ${fact('Identity verification', identity)}
+    </div>
+    ${panelMessage('Account activation cannot be changed here. There is no admin function that updates account status.')}
+    <div class="activity-grid">
+      ${activity.map(({ kind, title, result }) => `<section class="panel"><h3>${escapeHtml(title)}</h3>
+        ${result.rows.length ? `<div class="table-wrap"><table><thead><tr><th>Record</th><th>Status</th><th>When</th></tr></thead><tbody>
+          ${result.rows.map((row) => `<tr><td>${linkButton(`open-${row.record_type}`, row.record_id, row.label)}</td><td>${badge(row.status)}</td><td>${escapeHtml(formatWhen(row.created_at))}</td></tr>`).join('')}
+        </tbody></table></div>` : '<p class="empty">None.</p>'}
+        ${pager(result.page, result.total, 'user-activity', `data-kind="${kind}"`)}
+      </section>`).join('')}
+    </div>
+  </section>`;
 }
 
 async function renderListings(root) {
@@ -401,12 +537,12 @@ async function renderListings(root) {
     </div>
     ${result.rows.length ? `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Category</th><th>City</th><th>Status</th><th>Owner</th></tr></thead><tbody>
       ${result.rows.map((listing) => `<tr data-action="select-listing" data-id="${escapeHtml(listing.id)}" aria-selected="${selected && selected.id === listing.id}">
-        <td>${escapeHtml(listing.title)}</td><td>${escapeHtml(listing.category || '—')}</td><td>${escapeHtml(listing.city || '—')}</td><td>${badge(listing.status)}</td><td>${escapeHtml(listing.user_id)}</td>
+        <td>${escapeHtml(listing.title)}</td><td>${escapeHtml(listing.category || '—')}</td><td>${escapeHtml(listing.city || '—')}</td><td>${badge(listing.status)}</td><td>${linkButton('open-user', listing.user_id, listing.user_id)}</td>
       </tr>`).join('')}
     </tbody></table></div>` : '<p class="empty">No matching listings.</p>'}
     ${pager(result.page, result.total, 'listings-page')}
     ${selected ? `<section class="panel"><h2>${escapeHtml(selected.title)}</h2>
-      <p class="muted">Owner ${escapeHtml(selected.user_id)}</p>
+      <p class="muted">Owner ${linkButton('open-user', selected.user_id, selected.user_id)}</p>
       <p>${escapeHtml([selected.category, selected.subcategory, selected.city].filter(Boolean).join(' · ') || '—')}</p>
       <p>${selected.budget != null ? escapeHtml(`${selected.budget} ${selected.currency || ''}`) : '—'}</p>
       <p>${escapeHtml(selected.description || '')}</p>
@@ -431,15 +567,35 @@ async function renderListings(root) {
 }
 
 async function renderReports(root) {
-  const result = pageResult(await rpc('admin_list_reports', {
-    status: state.reports.status === 'all' ? null : state.reports.status,
-    page: state.reports.page,
-    page_size: PAGE_SIZE,
-  }));
+  const userId = uuidOrNull(state.reports.user);
+  let result = { rows: [], total: 0, page: state.reports.page };
+  let detailed = true;
+  let blocked = '';
+  if (userId === undefined) {
+    blocked = panelMessage('Enter a full user id, or leave the user filter empty.', 'form-error');
+  } else {
+    try {
+      result = pageResult(await rpc('admin_search_reports', {
+        search: state.reports.query || null,
+        status: state.reports.status === 'all' ? null : state.reports.status,
+        user_id: userId,
+        page: state.reports.page,
+        page_size: PAGE_SIZE,
+      }));
+    } catch (error) {
+      if (!missingRpc(error)) throw error;
+      detailed = false;
+      result = pageResult(await rpc('admin_list_reports', {
+        status: state.reports.status === 'all' ? null : state.reports.status,
+        page: state.reports.page,
+        page_size: PAGE_SIZE,
+      }));
+    }
+  }
   let selected = null;
   const selectedReportId = reportId(state.reports.selected);
-  if (selectedReportId != null) {
-    selected = await rpc('admin_report', { report_id: selectedReportId });
+  if (!blocked && selectedReportId != null) {
+    selected = await rpc(detailed ? 'admin_report_detail' : 'admin_report', { report_id: selectedReportId });
     if (!state.reports.noteLoaded) {
       state.reports.note = selected.admin_note || '';
       state.reports.nextStatus = selected.status || 'open';
@@ -450,40 +606,261 @@ async function renderReports(root) {
   const reportRows = result.rows.map((report) => {
     const rowId = reportId(report.id);
     return `<tr data-action="select-report" data-id="${escapeHtml(rowId || '')}" aria-selected="${selectedReportId !== null && selectedReportId === rowId}">
-        <td>${escapeHtml(report.reason)}</td><td>${badge(report.status)}</td><td>${escapeHtml(formatWhen(report.created_at))}</td>
+        <td>${escapeHtml(report.reason)}</td>
+        <td>${linkButton('open-user', report.reporter_id, report.reporter_name || report.reporter_id)}</td>
+        <td>${linkButton('open-user', report.reported_user_id, report.reported_name || report.reported_user_id)}</td>
+        <td>${linkButton('open-listing', report.listing_id, report.listing_title || report.listing_id)}</td>
+        <td>${badge(report.status)}</td>
+        <td>${escapeHtml(formatWhen(report.created_at))}</td>
       </tr>`;
   }).join('');
 
+  const relatedOffers = selected && Array.isArray(selected.offers) ? selected.offers : [];
+  const relatedDeals = selected && Array.isArray(selected.deals) ? selected.deals : [];
   root.innerHTML = `
+    ${blocked || (detailed ? '' : panelMessage(CRM_MIGRATION))}
+    <div class="filters">
+      <input id="report-search" value="${escapeHtml(state.reports.query)}" placeholder="Search reason, description, name, or listing" ${detailed ? '' : 'disabled'}>
+      <input id="report-user" value="${escapeHtml(state.reports.user)}" placeholder="User id" ${detailed ? '' : 'disabled'}>
+    </div>
     <div class="chips">${['all', ...REPORT_STATUSES].map((status) => `<button class="ghost" data-action="reports-filter" data-status="${status}" aria-pressed="${state.reports.status === status}">${status}</button>`).join('')}</div>
-    ${result.rows.length ? `<div class="table-wrap"><table><thead><tr><th>Reason</th><th>Status</th><th>Created</th></tr></thead><tbody>
+    ${blocked ? '' : result.rows.length ? `<div class="table-wrap"><table><thead><tr><th>Reason</th><th>Reporter</th><th>Reported user</th><th>Listing</th><th>Status</th><th>Created</th></tr></thead><tbody>
       ${reportRows}
     </tbody></table></div>` : '<p class="empty">No reports.</p>'}
-    ${pager(result.page, result.total, 'reports-page')}
-    ${selected ? `<section class="panel"><h2>${escapeHtml(selected.reason)}</h2>
-      <p class="muted">Reporter ${escapeHtml(selected.reporter_id)} · Reported account ${escapeHtml(selected.reported_user_id || '—')}</p>
-      <p class="muted">Task ${escapeHtml(selected.task_id ?? '—')} · Created ${escapeHtml(formatWhen(selected.created_at))} · Resolved ${escapeHtml(formatWhen(selected.resolved_at))}</p>
+    ${blocked ? '' : pager(result.page, result.total, 'reports-page')}
+    ${blocked ? '' : selected ? `<section class="panel"><h2>${escapeHtml(selected.reason)}</h2>
+      <p>Reporter ${linkButton('open-user', selected.reporter_id, selected.reporter_name || selected.reporter_id)} · Reported account ${linkButton('open-user', selected.reported_user_id, selected.reported_name || selected.reported_user_id)}</p>
+      <p>Listing ${linkButton('open-listing', selected.listing_id, selected.listing_title || selected.listing_id)} · Task ${escapeHtml(selected.task_id ?? '—')}</p>
+      <p class="muted">Created ${escapeHtml(formatWhen(selected.created_at))} · Resolved ${escapeHtml(formatWhen(selected.resolved_at))}</p>
       <p>${escapeHtml(selected.description || '')}</p>
-      <label for="report-note">Admin note</label>
+      ${panelMessage('Reports do not store evidence or attachments. Dispute evidence is shown on the related deal.')}
+      <h3>Related offers</h3>
+      ${relatedOffers.length ? `<div class="table-wrap"><table><thead><tr><th>Offer</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+        ${relatedOffers.map((offer) => `<tr><td>${linkButton('open-offer', offer.id, offer.id)}</td><td>${escapeHtml(money(offer.amount, offer.currency))}</td><td>${badge(offer.status)}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="empty">No related offer is stored on this report.</p>'}
+      <h3>Related deals</h3>
+      ${relatedDeals.length ? `<div class="table-wrap"><table><thead><tr><th>Deal</th><th>Status</th></tr></thead><tbody>
+        ${relatedDeals.map((deal) => `<tr><td>${linkButton('open-deal', deal.id, deal.id)}</td><td>${badge(deal.status)}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="empty">No related deal is stored on this report.</p>'}
+      <label for="report-note">Internal admin note</label>
       <textarea id="report-note">${escapeHtml(state.reports.note)}</textarea>
       <div class="chips">${REPORT_STATUSES.map((status) => `<button class="ghost" data-action="report-status" data-status="${status}" aria-pressed="${state.reports.nextStatus === status}">${status}</button>`).join('')}</div>
       <button class="primary" data-action="save-report" data-id="${escapeHtml(reportId(selected.id) || '')}">Save report</button>
       <div id="report-error"></div>
-    </section>` : panelMessage('Select a report to review it.')}`;
+    </section>` : blocked ? '' : panelMessage('Select a report to review it.')}`;
+
+  const search = $('report-search');
+  const user = $('report-user');
+  if (search) search.addEventListener('change', (event) => {
+    state.reports.query = event.target.value.trim();
+    state.reports.page = 1;
+    renderSection();
+  });
+  if (user) user.addEventListener('change', (event) => {
+    state.reports.user = event.target.value.trim();
+    state.reports.page = 1;
+    renderSection();
+  });
+}
+
+async function renderOffers(root) {
+  const userId = uuidOrNull(state.offers.user);
+  const range = dateRange(state.offers.from, state.offers.to);
+  let result = { rows: [], total: 0, page: state.offers.page };
+  let blocked = '';
+  if (userId === undefined) {
+    blocked = panelMessage('Enter a full user id, or leave the user filter empty.', 'form-error');
+  } else {
+    try {
+      result = pageResult(await rpc('admin_list_offers', {
+        search: state.offers.query || null,
+        status: state.offers.status === 'all' ? null : state.offers.status,
+        user_id: userId,
+        created_from: range.created_from,
+        created_to: range.created_to,
+        page: state.offers.page,
+        page_size: PAGE_SIZE,
+      }));
+    } catch (error) {
+      if (!missingRpc(error)) throw error;
+      blocked = panelMessage(CRM_MIGRATION);
+    }
+  }
+  let selected = null;
+  const selectedId = integerId(state.offers.selected);
+  if (!blocked && selectedId != null) {
+    selected = await rpc('admin_offer', { offer_id: selectedId });
+  }
+  root.innerHTML = `
+    ${panelMessage('Offers are read-only here. Accepting or rejecting an offer stays in the app.')}
+    ${blocked}
+    <div class="filters">
+      <input id="offer-search" value="${escapeHtml(state.offers.query)}" placeholder="Search name, listing, or message">
+      <input id="offer-user" value="${escapeHtml(state.offers.user)}" placeholder="User id">
+      <input id="offer-from" type="date" value="${escapeHtml(state.offers.from)}">
+      <input id="offer-to" type="date" value="${escapeHtml(state.offers.to)}">
+      <select id="offer-status">
+        <option value="all">All statuses</option>
+        ${OFFER_STATUSES.map((status) => `<option value="${status}" ${status === state.offers.status ? 'selected' : ''}>${status}</option>`).join('')}
+      </select>
+    </div>
+    ${blocked ? '' : result.rows.length ? `<div class="table-wrap"><table><thead><tr><th>Offer</th><th>Provider</th><th>Client</th><th>Listing</th><th>Price</th><th>Message</th><th>Status</th><th>Deal</th><th>Created</th></tr></thead><tbody>
+      ${result.rows.map((offer) => {
+        const id = integerId(offer.id);
+        return `<tr data-action="select-offer" data-id="${escapeHtml(id || '')}" aria-selected="${selectedId !== null && selectedId === id}">
+          <td>${escapeHtml(id || '—')}</td>
+          <td>${linkButton('open-user', offer.provider_id, offer.provider_name)}</td>
+          <td>${linkButton('open-user', offer.client_id, offer.client_name)}</td>
+          <td>${linkButton('open-listing', offer.listing_id, offer.listing_title)}</td>
+          <td>${escapeHtml(money(offer.amount, offer.currency))}</td>
+          <td>${escapeHtml(offer.message_preview || '—')}</td>
+          <td>${badge(offer.status)}</td>
+          <td>${linkButton('open-deal', offer.deal_id, offer.deal_id ? 'Open' : '')}</td>
+          <td>${escapeHtml(formatWhen(offer.created_at))}</td>
+        </tr>`;
+      }).join('')}
+    </tbody></table></div>` : '<p class="empty">No matching offers.</p>'}
+    ${blocked ? '' : pager(result.page, result.total, 'offers-page')}
+    ${selected ? `<section class="panel"><h2>Offer ${escapeHtml(integerId(selected.id))}</h2>
+      <p>Provider ${linkButton('open-user', selected.provider_id, selected.provider_name)} · Client ${linkButton('open-user', selected.client_id, selected.client_name)}</p>
+      <p>Listing ${linkButton('open-listing', selected.listing_id, selected.listing_title)} · Deal ${linkButton('open-deal', selected.deal_id, selected.deal_id || 'None')}</p>
+      <p>${escapeHtml(money(selected.amount, selected.currency))} · ${badge(selected.status)} · ${escapeHtml(formatWhen(selected.created_at))}</p>
+      <p>${escapeHtml(selected.message || 'No message.')}</p>
+    </section>` : blocked ? '' : panelMessage('Select an offer to read it.')}`;
+
+  $('offer-search').addEventListener('change', (event) => {
+    state.offers.query = event.target.value.trim();
+    state.offers.page = 1;
+    renderSection();
+  });
+  $('offer-user').addEventListener('change', (event) => {
+    state.offers.user = event.target.value.trim();
+    state.offers.page = 1;
+    renderSection();
+  });
+  $('offer-from').addEventListener('change', (event) => {
+    state.offers.from = event.target.value;
+    state.offers.page = 1;
+    renderSection();
+  });
+  $('offer-to').addEventListener('change', (event) => {
+    state.offers.to = event.target.value;
+    state.offers.page = 1;
+    renderSection();
+  });
+  $('offer-status').addEventListener('change', (event) => {
+    state.offers.status = event.target.value;
+    state.offers.page = 1;
+    renderSection();
+  });
 }
 
 async function renderDeals(root) {
-  const [stats, rows] = await Promise.all([
-    rpc('get_admin_dashboard_stats'),
-    api('/rest/v1/deals?select=id,listing_id,status,created_at&order=created_at.desc&limit=20'),
-  ]);
-  const deals = Array.isArray(rows) ? rows : [];
+  const userId = uuidOrNull(state.deals.user);
+  const range = dateRange(state.deals.from, state.deals.to);
+  let result = { rows: [], total: 0, page: state.deals.page };
+  let blocked = '';
+  if (userId === undefined) {
+    blocked = panelMessage('Enter a full user id, or leave the user filter empty.', 'form-error');
+  } else {
+    try {
+      result = pageResult(await rpc('admin_list_deals', {
+        search: state.deals.query || null,
+        status: state.deals.status === 'all' ? null : state.deals.status,
+        user_id: userId,
+        created_from: range.created_from,
+        created_to: range.created_to,
+        page: state.deals.page,
+        page_size: PAGE_SIZE,
+      }));
+    } catch (error) {
+      if (!missingRpc(error)) throw error;
+      blocked = panelMessage(CRM_MIGRATION);
+    }
+  }
+  let selected = null;
+  let messages = { rows: [], total: 0, page: 1 };
+  if (!blocked && state.deals.selected) {
+    selected = await rpc('admin_deal', { deal_id: state.deals.selected });
+    messages = pageResult(await rpc('admin_deal_messages', {
+      deal_id: state.deals.selected,
+      page: state.deals.messagesPage,
+      page_size: PAGE_SIZE,
+    }));
+  }
+  const disputes = selected && Array.isArray(selected.disputes) ? selected.disputes : [];
+  const reports = selected && Array.isArray(selected.reports) ? selected.reports : [];
   root.innerHTML = `
-    <div class="stat"><span>All deals</span><b>${escapeHtml(stats.deals)}</b></div>
-    ${panelMessage('The count includes every deal. The table shows only deals this signed-in account participates in. There is no admin function for a full deal directory, and payment fields are not requested.')}
-    ${deals.length ? `<div class="table-wrap"><table><thead><tr><th>Deal</th><th>Listing</th><th>Status</th><th>Created</th></tr></thead><tbody>
-      ${deals.map((deal) => `<tr><td>${escapeHtml(deal.id)}</td><td>${escapeHtml(deal.listing_id)}</td><td>${badge(deal.status)}</td><td>${escapeHtml(formatWhen(deal.created_at))}</td></tr>`).join('')}
-    </tbody></table></div>` : '<p class="empty">No deals are visible for this account.</p>'}`;
+    ${panelMessage('Deal status and payment records are read-only in this dashboard.')}
+    ${blocked}
+    <div class="filters">
+      <input id="deal-search" value="${escapeHtml(state.deals.query)}" placeholder="Search name or listing">
+      <input id="deal-user" value="${escapeHtml(state.deals.user)}" placeholder="User id">
+      <input id="deal-from" type="date" value="${escapeHtml(state.deals.from)}">
+      <input id="deal-to" type="date" value="${escapeHtml(state.deals.to)}">
+      <select id="deal-status">
+        <option value="all">All statuses</option>
+        ${DEAL_STATUSES.map((status) => `<option value="${status}" ${status === state.deals.status ? 'selected' : ''}>${status}</option>`).join('')}
+      </select>
+    </div>
+    ${blocked ? '' : result.rows.length ? `<div class="table-wrap"><table><thead><tr><th>Deal</th><th>Client</th><th>Provider</th><th>Listing</th><th>Amount</th><th>Status</th><th>Dispute</th><th>Created</th></tr></thead><tbody>
+      ${result.rows.map((deal) => `<tr data-action="select-deal" data-id="${escapeHtml(deal.id)}" aria-selected="${selected && selected.id === deal.id}">
+        <td>${escapeHtml(deal.id)}</td>
+        <td>${linkButton('open-user', deal.client_id, deal.client_name)}</td>
+        <td>${linkButton('open-user', deal.provider_id, deal.provider_name)}</td>
+        <td>${linkButton('open-listing', deal.listing_id, deal.listing_title)}</td>
+        <td>${escapeHtml(money(deal.amount, deal.currency))}</td>
+        <td>${badge(deal.status)}</td>
+        <td>${badge(deal.dispute_status || 'none')}</td>
+        <td>${escapeHtml(formatWhen(deal.created_at))}</td>
+      </tr>`).join('')}
+    </tbody></table></div>` : '<p class="empty">No matching deals.</p>'}
+    ${blocked ? '' : pager(result.page, result.total, 'deals-page')}
+    ${selected ? `<section class="panel"><h2>Deal</h2>
+      <p>Client ${linkButton('open-user', selected.client_id, selected.client_name)} · Provider ${linkButton('open-user', selected.provider_id, selected.provider_name)}</p>
+      <p>Listing ${linkButton('open-listing', selected.listing_id, selected.listing_title)} · Offer ${linkButton('open-offer', selected.offer_id, selected.offer_id || 'None')}</p>
+      <p>${escapeHtml(money(selected.amount, selected.currency))} · ${badge(selected.status)} · Payment ${escapeHtml(selected.payment_status || '—')}</p>
+      <p class="muted">Created ${escapeHtml(formatWhen(selected.created_at))} · Messages ${escapeHtml(selected.message_count)}</p>
+      <h3>Disputes</h3>
+      ${disputes.length ? `<div class="table-wrap"><table><thead><tr><th>Reason</th><th>Status</th><th>Evidence</th></tr></thead><tbody>
+        ${disputes.map((dispute) => `<tr><td>${escapeHtml(dispute.reason)}</td><td>${badge(dispute.status)}</td><td>${escapeHtml(Array.isArray(dispute.evidence_urls) && dispute.evidence_urls.length ? dispute.evidence_urls.join(', ') : 'None')}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="empty">No disputes.</p>'}
+      <h3>Reports</h3>
+      ${reports.length ? `<div class="table-wrap"><table><thead><tr><th>Reason</th><th>Status</th></tr></thead><tbody>
+        ${reports.map((report) => `<tr><td>${linkButton('open-report', report.id, report.reason)}</td><td>${badge(report.status)}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="empty">No related reports.</p>'}
+      <h3>Conversation</h3>
+      ${messages.rows.length ? `<div class="table-wrap"><table><thead><tr><th>When</th><th>From</th><th>Message</th></tr></thead><tbody>
+        ${messages.rows.map((message) => `<tr><td>${escapeHtml(formatWhen(message.created_at))}</td><td>${linkButton('open-user', message.sender_id, message.sender_id)}</td><td>${escapeHtml(message.message)}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="empty">No messages in this deal.</p>'}
+      ${pager(messages.page, messages.total, 'deal-messages-page')}
+    </section>` : blocked ? '' : panelMessage('Select a deal to see the participants, listing, offer, reports, and conversation.')}`;
+
+  $('deal-search').addEventListener('change', (event) => {
+    state.deals.query = event.target.value.trim();
+    state.deals.page = 1;
+    renderSection();
+  });
+  $('deal-user').addEventListener('change', (event) => {
+    state.deals.user = event.target.value.trim();
+    state.deals.page = 1;
+    renderSection();
+  });
+  $('deal-from').addEventListener('change', (event) => {
+    state.deals.from = event.target.value;
+    state.deals.page = 1;
+    renderSection();
+  });
+  $('deal-to').addEventListener('change', (event) => {
+    state.deals.to = event.target.value;
+    state.deals.page = 1;
+    renderSection();
+  });
+  $('deal-status').addEventListener('change', (event) => {
+    state.deals.status = event.target.value;
+    state.deals.page = 1;
+    renderSection();
+  });
 }
 
 async function renderCategories(root) {
@@ -749,14 +1126,30 @@ document.addEventListener('click', async (event) => {
     logout();
     return;
   }
-  if (action === 'users-page' || action === 'listings-page' || action === 'reports-page' || action === 'suggestions-page' || action === 'verification-page') {
+  const recordSections = {
+    'open-user': 'users',
+    'open-listing': 'listings',
+    'open-offer': 'offers',
+    'open-deal': 'deals',
+    'open-report': 'reports',
+  };
+  if (recordSections[action]) {
+    if (!button.dataset.id) return;
+    openRecord(recordSections[action], button.dataset.id);
+    return;
+  }
+  if (action === 'users-page' || action === 'listings-page' || action === 'offers-page' || action === 'deals-page' || action === 'deal-messages-page' || action === 'reports-page' || action === 'suggestions-page' || action === 'verification-page' || action === 'user-activity') {
     const page = Number(button.dataset.page);
     if (page < 1) return;
     if (action === 'users-page') state.users.page = page;
     if (action === 'listings-page') state.listings.page = page;
+    if (action === 'offers-page') state.offers.page = page;
+    if (action === 'deals-page') state.deals.page = page;
+    if (action === 'deal-messages-page') state.deals.messagesPage = page;
     if (action === 'reports-page') state.reports.page = page;
     if (action === 'suggestions-page') state.suggestions.page = page;
     if (action === 'verification-page') state.verification.page = page;
+    if (action === 'user-activity' && button.dataset.kind) state.users.activityPage[button.dataset.kind] = page;
     renderSection();
     return;
   }
@@ -792,7 +1185,21 @@ document.addEventListener('click', async (event) => {
     return;
   }
   if (action === 'select-user') {
-    state.users.selected = { id: button.dataset.id };
+    state.users.selected = button.dataset.id;
+    state.users.activityPage = {};
+    renderSection();
+    return;
+  }
+  if (action === 'select-offer') {
+    const id = integerId(button.dataset.id);
+    if (id == null) return;
+    state.offers.selected = id;
+    renderSection();
+    return;
+  }
+  if (action === 'select-deal') {
+    state.deals.selected = button.dataset.id;
+    state.deals.messagesPage = 1;
     renderSection();
     return;
   }
