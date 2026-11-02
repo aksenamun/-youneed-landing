@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://rmjavihkusnwdalwzlmt.supabase.co; img-src https://rmjavihkusnwdalwzlmt.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<title>YouNeed Admin</title>
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+<section id="login" class="auth-screen">
+  <form id="login-form" class="auth-card">
+    <div class="brand">YouNeed</div>
+    <h1>Admin</h1>
+    <p class="lede">Sign in with the same account used in the YouNeed app. Only an account listed in the admin roster can continue.</p>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="username" required>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="primary" type="submit">Sign in</button>
+    <div id="login-error" class="form-error" role="alert"></div>
+  </form>
+</section>
+
+<section id="denied" class="auth-screen hidden">
+  <div class="auth-card">
+    <div class="brand">YouNeed</div>
+    <h1>Access denied</h1>
+    <p class="lede">This account is signed in, but it is not an administrator.</p>
+    <button id="denied-logout" class="danger" type="button">Log out</button>
+  </div>
+</section>
+
+<div id="shell" class="shell hidden">
+  <aside class="sidebar">
+    <strong>YouNeed <span>Admin</span></strong>
+    <nav>
+      <button type="button" data-section="dashboard">Dashboard</button>
+      <button type="button" data-section="users">Users</button>
+      <button type="button" data-section="listings">Listings</button>
+      <button type="button" data-section="reports">Reports</button>
+      <button type="button" data-section="deals">Deals</button>
+      <button type="button" data-section="categories">Categories</button>
+      <button type="button" data-section="suggestions">Category Suggestions</button>
+      <button type="button" data-section="verification">Identity Verification</button>
+      <button type="button" data-section="settings">Settings</button>
+    </nav>
+    <button class="logout ghost" type="button" data-action="logout">Log out</button>
+  </aside>
+  <main class="main">
+    <header class="top">
+      <div>
+        <h1 id="title">Dashboard</h1>
+        <p>Website administration for youneed.lt</p>
+      </div>
+    </header>
+    <div id="content"></div>
+  </main>
+</div>
+<script src="/admin/admin.js"></script>
+</body>
+</html>
