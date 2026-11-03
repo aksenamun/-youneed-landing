@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://rmjavihkusnwdalwzlmt.supabase.co; img-src https://rmjavihkusnwdalwzlmt.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://rmjavihkusnwdalwzlmt.supabase.co; img-src 'self' https://rmjavihkusnwdalwzlmt.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
 <title>YouNeed Admin</title>
 <link rel="stylesheet" href="/admin/admin.css">
+<link rel="stylesheet" href="/admin/catalog.css">
 </head>
 <body>
 <section id="login" class="auth-screen">
@@ -59,6 +60,8 @@
     <div id="content"></div>
   </main>
 </div>
+<script src="/admin/catalog-data.js"></script>
 <script src="/admin/admin.js"></script>
+<script src="/admin/catalog-browser.js"></script>
 </body>
 </html>

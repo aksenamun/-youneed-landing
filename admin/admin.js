@@ -38,32 +38,9 @@ const SECTION_TITLES = {
   verification: 'Identity Verification',
   settings: 'Settings',
 };
-const CATEGORIES = [
-  "When I'm away",
-  'Clothes & personal items',
-  'Furniture IKEA & home things',
-  'Urgent help today',
-  'Everyday personal help',
-  'Moving & new life',
-  'Home & everyday living',
-  'Moving, transport & storage',
-  'Cleaning & housekeeping',
-  'Home maintenance & handyman',
-  'Education & learning',
-  'Repair & fixing services',
-  'Business, digital & office support',
-  'Health & personal care',
-  'Event planning',
-  'Auto & vehicle services',
-  'Photo, video & content creation',
-  'Pet care services',
-  'Legal assistance',
-  'Travel & tourism',
-  'Childcare & family support',
-  'Finance & accounting',
-  'Investigation services',
-  'Seasonal services',
-];
+const CATEGORIES = window.YOUNEED_CATALOG && Array.isArray(window.YOUNEED_CATALOG.categories)
+  ? window.YOUNEED_CATALOG.categories.map((category) => category.name)
+  : [];
 
 const state = {
   section: 'dashboard',

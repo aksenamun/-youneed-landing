@@ -1,0 +1,116 @@
+.catalog-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  margin-top: 14px;
+}
+
+.catalog-toolbar label {
+  margin: 0 0 6px;
+}
+
+.catalog-toolbar input,
+.catalog-toolbar select {
+  min-width: min(280px, 100%);
+}
+
+.catalog-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.catalog-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.catalog-category,
+.catalog-detail {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.catalog-category { overflow: hidden; }
+
+.catalog-category > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.catalog-category > summary::-webkit-details-marker { display: none; }
+
+.catalog-thumb {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #10241b;
+}
+
+.catalog-copy { min-width: 0; flex: 1; }
+
+.catalog-copy strong,
+.catalog-sub strong { display: block; }
+
+.catalog-copy span,
+.catalog-sub span { color: var(--muted); font-size: 13px; }
+
+.catalog-subs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
+.catalog-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f8fbf9;
+}
+
+.catalog-sub img {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #10241b;
+  flex: 0 0 48px;
+}
+
+.catalog-detail { padding: 16px 18px; }
+
+.catalog-detail img.catalog-hero {
+  width: min(180px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 16px;
+  background: #10241b;
+}
+
+.catalog-languages {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+  .catalog-toolbar input,
+  .catalog-toolbar select { width: 100%; }
+  .catalog-subs { grid-template-columns: 1fr; }
+  .catalog-thumb { width: 52px; height: 52px; flex-basis: 52px; }
+}
