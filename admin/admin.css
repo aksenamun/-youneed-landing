@@ -231,6 +231,9 @@ tr[aria-selected="true"] { background: #f4faf7; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 
+details.advanced { margin: 8px 0 14px; }
+details.advanced summary { cursor: pointer; color: var(--forest-mid); font-weight: 700; }
+
 @media (max-width: 1100px) {
   .activity-grid { grid-template-columns: 1fr; }
   table { min-width: 640px; }
