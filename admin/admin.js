@@ -274,7 +274,8 @@ function money(amount, currency) {
 }
 
 function fact(label, value) {
-  return `<div class="fact"><span>${escapeHtml(label)}</span><b>${escapeHtml(value || '—')}</b></div>`;
+  const shown = value === 0 || value === false ? value : (value || '—');
+  return `<div class="fact"><span>${escapeHtml(label)}</span><b>${escapeHtml(shown)}</b></div>`;
 }
 
 function identityText(card) {

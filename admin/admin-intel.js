@@ -358,7 +358,7 @@ async function renderHealth(root) {
     ${filterBar('health', { cityLabel: 'City', note: 'Registrations and sign-ins use the profile city. Listings, offers, deals, and reports use the listing city.' })}
     ${health ? `<div class="facts">
       ${fact('New registrations', health.new_registrations)}
-      ${fact('Signed in during range', health.signed_in_users)}
+      ${fact('Last sign-in in this range', health.signed_in_users)}
       ${fact('Repeat completed-deal users', health.repeat_users)}
       ${fact('New listings', health.new_listings)}
       ${fact('Offers', health.offers)}
@@ -434,7 +434,7 @@ async function userPrivatePanels(userId) {
     <div class="chips">${USER_TAGS.map(([value, label]) => `<button class="ghost" data-action="user-tag" data-id="${escapeHtml(userId)}" data-tag="${value}" data-enabled="${tags.includes(value) ? 'false' : 'true'}" aria-pressed="${tags.includes(value)}">${escapeHtml(label)}</button>`).join('')}</div>
     <h3>Internal notes</h3>
     ${notes.length ? `<div class="table-wrap"><table><thead><tr><th>When</th><th>Author</th><th>Note</th></tr></thead><tbody>
-      ${notes.map((note) => `<tr><td>${escapeHtml(formatVilnius(note.created_at))}</td><td>${escapeHtml(note.author_id)}</td><td>${escapeHtml(note.body)}</td></tr>`).join('')}
+      ${notes.map((note) => `<tr><td>${escapeHtml(formatVilnius(note.created_at))}</td><td>${escapeHtml(note.author_name || note.author_id || 'Administrator')}</td><td>${escapeHtml(note.body)}</td></tr>`).join('')}
     </tbody></table></div>` : '<p class="empty">No internal notes.</p>'}
     <label for="user-note">Add an internal note</label>
     <textarea id="user-note"></textarea>
@@ -490,12 +490,17 @@ async function handleIntelClick(event, action, button) {
     return true;
   }
   if (action === 'user-tag') {
-    await rpc('admin_set_user_tag', {
-      target_user: button.dataset.id,
-      tag: button.dataset.tag,
-      enabled: button.dataset.enabled === 'true',
-    });
-    renderSection();
+    const error = $('user-note-error');
+    try {
+      await rpc('admin_set_user_tag', {
+        target_user: button.dataset.id,
+        tag: button.dataset.tag,
+        enabled: button.dataset.enabled === 'true',
+      });
+      await renderSection();
+    } catch (caught) {
+      if (error) error.innerHTML = panelMessage(caught.message || 'The tag could not be saved.', 'form-error');
+    }
     return true;
   }
   if (action === 'add-user-note') {
@@ -503,7 +508,7 @@ async function handleIntelClick(event, action, button) {
     const body = ($('user-note') || {}).value || '';
     try {
       await rpc('admin_add_user_note', { target_user: button.dataset.id, body: body.trim() });
-      renderSection();
+      await renderSection();
     } catch (caught) {
       if (error) error.innerHTML = panelMessage(caught.message || 'The note could not be saved.', 'form-error');
     }
