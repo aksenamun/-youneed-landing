@@ -7,6 +7,14 @@
     {
       "source": "/task/:id/",
       "destination": "/api/task/:id"
+    },
+    {
+      "source": "/delete-account",
+      "destination": "/delete-account.html"
+    },
+    {
+      "source": "/delete-account/",
+      "destination": "/delete-account.html"
     }
   ]
 }

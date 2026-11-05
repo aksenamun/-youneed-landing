@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delete YouNeed account</title>
+<meta name="description" content="Request permanent deletion of your YouNeed account. Ownership is verified with a one-time email code — never by email address alone.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://www.youneed.lt/delete-account">
+<style>
+:root{--bg:#f7f7f4;--ink:#111;--muted:#686868;--card:#fff;--line:#e8e8e3;--accent:#111;--danger:#8b1a1a;--ok:#063318}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+a{text-decoration:none;color:inherit}
+.nav{height:76px;display:flex;align-items:center;justify-content:space-between;max-width:860px;margin:auto;padding:0 24px}
+.logo{font-size:24px;font-weight:800;letter-spacing:-1px}.logo span{font-weight:400}
+.lang{border:1px solid var(--line);background:white;border-radius:999px;padding:9px 13px;font-size:13px;cursor:pointer}
+main{max-width:860px;margin:0 auto;padding:28px 24px 80px}
+.hero{margin-bottom:36px}
+.badge{display:inline-flex;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:13px;margin-bottom:18px}
+h1{font-size:clamp(40px,6vw,64px);line-height:.95;letter-spacing:-2.5px;margin:0 0 16px}
+.lead{font-size:18px;line-height:1.55;color:var(--muted);max-width:640px;margin:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:28px;margin:0 0 18px}
+.panel h2{font-size:22px;letter-spacing:-0.6px;margin:0 0 12px}
+.panel p,.panel li{color:var(--muted);font-size:15px;line-height:1.6}
+.panel ul{margin:8px 0 0;padding-left:18px}
+.panel li{margin:6px 0}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start}
+label{display:block;font-size:13px;font-weight:600;margin:0 0 8px}
+input[type="email"],input[type="text"],input[type="password"]{width:100%;min-height:48px;border:1px solid #dcdcd5;border-radius:13px;padding:12px 14px;font-size:16px;background:#fff;color:var(--ink)}
+.field{margin:0 0 14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:14px 18px;border-radius:13px;font-weight:700;font-size:14px;border:1px solid transparent;cursor:pointer;width:100%}
+.primary{background:#111;color:#fff}
+.secondary{border:1px solid #dcdcd5;background:#fff;color:var(--ink)}
+.danger{background:var(--danger);color:#fff}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.hint{font-size:13px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+.status{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.5;display:none}
+.status.show{display:block}
+.status.info{background:#f0f0eb;color:var(--ink)}
+.status.ok{background:#eef6f1;color:var(--ok)}
+.status.err{background:#f8ecec;color:var(--danger)}
+.check{display:flex;gap:10px;align-items:flex-start;margin:8px 0 16px;font-size:14px;line-height:1.45;color:var(--muted)}
+.check input{margin-top:3px}
+.hidden{display:none!important}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.step{font-size:12px;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted)}
+.step.on{background:#111;color:#fff;border-color:#111}
+footer{border-top:1px solid var(--line);padding:28px 24px;color:var(--muted);font-size:13px}
+.foot{max-width:860px;margin:auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media(max-width:800px){
+  .grid{grid-template-columns:1fr}
+  .panel{padding:22px 18px;border-radius:20px}
+  h1{letter-spacing:-1.8px}
+}
+</style>
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="/">YouNeed<span>.lt</span></a>
+  <button class="lang" type="button" id="lang">EN ▾</button>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="badge" id="badge">Google Play account deletion</div>
+    <h1 id="title">Delete your YouNeed account</h1>
+    <p class="lead" id="lead">Request permanent deletion of your account from the web. We verify ownership with a one-time email code before anything is deleted — your email address alone is never enough.</p>
+  </section>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="formTitle">
+      <div class="steps" aria-hidden="true">
+        <span class="step on" id="step1pill">1 · Verify</span>
+        <span class="step" id="step2pill">2 · Confirm</span>
+        <span class="step" id="step3pill">3 · Done</span>
+      </div>
+
+      <h2 id="formTitle">Request deletion</h2>
+      <p id="formIntro">Enter the email used for your YouNeed account. We will send a one-time verification code. After you enter that code, you can permanently delete the account.</p>
+
+      <div id="phaseEmail">
+        <div class="field">
+          <label for="email" id="emailLabel">Account email</label>
+          <input id="email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com">
+        </div>
+        <button class="btn primary" type="button" id="sendCodeBtn">Send verification code</button>
+        <p class="hint" id="emailHint">No existing website login session is required. Ownership is proven when you enter the code from your email inbox.</p>
+      </div>
+
+      <div id="phaseOtp" class="hidden">
+        <div class="field">
+          <label for="otp" id="otpLabel">Verification code</label>
+          <input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="12" placeholder="123456">
+        </div>
+        <button class="btn primary" type="button" id="verifyBtn">Verify ownership</button>
+        <button class="btn secondary" type="button" id="resendBtn" style="margin-top:10px">Resend code</button>
+        <p class="hint" id="otpHint">Check your inbox (and spam folder). The code proves you control this email address.</p>
+      </div>
+
+      <div id="phaseConfirm" class="hidden">
+        <p id="verifiedAs"></p>
+        <label class="check">
+          <input type="checkbox" id="confirmCheck">
+          <span id="confirmLabel">I understand this permanently deletes my YouNeed account and cannot be undone.</span>
+        </label>
+        <button class="btn danger" type="button" id="deleteBtn" disabled>Permanently delete my account</button>
+        <p class="hint" id="confirmHint">Deletion uses your verified session token. We never delete an account based on email alone.</p>
+      </div>
+
+      <div id="phaseDone" class="hidden">
+        <p id="doneText">Your YouNeed account has been permanently deleted.</p>
+        <a class="btn secondary" href="/" id="homeBtn" style="margin-top:14px">Back to YouNeed</a>
+      </div>
+
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <aside>
+      <section class="panel">
+        <h2 id="howTitle">How to request deletion</h2>
+        <ul id="howList">
+          <li>In the YouNeed app: Settings → Delete Account (while signed in).</li>
+          <li>On this page: verify ownership with a one-time email code, then confirm.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2 id="verifyTitle">How ownership is verified</h2>
+        <ul id="verifyList">
+          <li>In-app: your active signed-in session (JWT).</li>
+          <li>On the web: a one-time code sent to your account email, then a short-lived verified session.</li>
+          <li>Email address alone never authorizes deletion.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2 id="deletedTitle">What is deleted</h2>
+        <ul id="deletedList">
+          <li>Account login and profile (name, phone, city, avatar, business profile fields).</li>
+          <li>Listings, listing photos under your user folder, offers, and tasks you created (where not required for the other party’s retained history).</li>
+          <li>Push tokens, blocks, reports, and identity-verification records tied to your login.</li>
+          <li>Your ability to sign in or access any retained records after deletion.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2 id="retainedTitle">What may be retained</h2>
+        <ul id="retainedList">
+          <li><strong>Financial records:</strong> transaction id, amount, currency, status, timestamps and payment-processor references may be kept as required for accounting, tax, reconciliation and fraud prevention under applicable law. Exact periods are set by those obligations (to be confirmed with counsel)—not a single blanket timeline for all data. Personal profile links are removed.</li>
+          <li><strong>Disputes:</strong> dispute records and any evidence (text today; files if/when stored) may be kept while needed to handle the dispute and related legal claims—not indefinitely. The other participant can still access their side of the dispute history.</li>
+          <li><strong>Reviews:</strong> ratings and comments may remain for the other participant’s history with your identity link removed or anonymized.</li>
+          <li><strong>Ordinary chat:</strong> conversation text the other participant already received may remain briefly for ongoing deals; messages older than about 24 months and not tied to an open dispute or disputed deal are eligible for automated purge.</li>
+          <li>Stripe Connect account-id mappings (no email/name) may be kept only as long as needed for reconciliation. Category suggestions may remain with the personal link removed.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2 id="supportTitle">Support</h2>
+        <p id="supportText">Questions about account deletion or privacy: <a href="mailto:nuzhnakseniia@gmail.com">nuzhnakseniia@gmail.com</a>. General contact: <a href="mailto:hello@youneed.app">hello@youneed.app</a>.</p>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <div class="foot">
+    <span id="footer">© 2026 YouNeed</span>
+    <span>
+      <a href="/">Home</a> ·
+      <a href="/delete-account" id="footerDelete">Delete account</a> ·
+      <a href="mailto:nuzhnakseniia@gmail.com" id="footerContact">Support</a>
+    </span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  const SUPABASE_URL = 'https://rmjavihkusnwdalwzlmt.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_zwR1kDFTjxbeQ5WBYmzw3g_UqkUfKNX';
+  const DELETE_URL = SUPABASE_URL + '/functions/v1/delete-account';
+  const REDIRECT = 'https://www.youneed.lt/delete-account';
+
+  const copy = {
+    EN: {
+      lang: 'EN ▾', badge: 'Google Play account deletion',
+      title: 'Delete your YouNeed account',
+      lead: 'Request permanent deletion of your account from the web. We verify ownership with a one-time email code before anything is deleted — your email address alone is never enough.',
+      formTitle: 'Request deletion',
+      formIntro: 'Enter the email used for your YouNeed account. We will send a one-time verification code. After you enter that code, you can permanently delete the account.',
+      emailLabel: 'Account email', sendCode: 'Send verification code',
+      emailHint: 'No existing website login session is required. Ownership is proven when you enter the code from your email inbox.',
+      otpLabel: 'Verification code', verify: 'Verify ownership', resend: 'Resend code',
+      otpHint: 'Check your inbox (and spam folder). The code proves you control this email address.',
+      confirmLabel: 'I understand this permanently deletes my YouNeed account and cannot be undone.',
+      delete: 'Permanently delete my account',
+      confirmHint: 'Deletion uses your verified session token. We never delete an account based on email alone.',
+      done: 'Your YouNeed account has been permanently deleted.', home: 'Back to YouNeed',
+      howTitle: 'How to request deletion',
+      how1: 'In the YouNeed app: Settings → Delete Account (while signed in).',
+      how2: 'On this page: verify ownership with a one-time email code, then confirm.',
+      verifyTitle: 'How ownership is verified',
+      verify1: 'In-app: your active signed-in session (JWT).',
+      verify2: 'On the web: a one-time code sent to your account email, then a short-lived verified session.',
+      verify3: 'Email address alone never authorizes deletion.',
+      deletedTitle: 'What is deleted',
+      deleted1: 'Account login and profile (name, phone, city, avatar, business profile fields).',
+      deleted2: 'Listings, listing photos under your user folder, offers, and tasks you created (where not required for the other party’s retained history).',
+      deleted3: 'Push tokens, blocks, reports, and identity-verification records tied to your login.',
+      deleted4: 'Your ability to sign in or access any retained records after deletion.',
+      retainedTitle: 'What may be retained',
+      retained1: 'Financial records: transaction id, amount, currency, status, timestamps and payment-processor references may be kept as required for accounting, tax, reconciliation and fraud prevention under applicable law. Exact periods depend on those obligations (confirm with counsel)—not one blanket timeline for all data. Personal profile links are removed.',
+      retained2: 'Disputes: dispute records and any evidence (text today; files if/when stored) may be kept while needed for the dispute and related legal claims—not indefinitely. The other participant keeps access to their dispute history.',
+      retained3: 'Reviews: ratings and comments may remain for the other participant with your identity link removed or anonymized.',
+      retained4: 'Ordinary chat: text the other participant already received may remain for ongoing deals; messages older than about 24 months and not tied to an open dispute or disputed deal are eligible for automated purge.',
+      retained5: 'Stripe Connect account-id mappings (no email/name) only as long as needed for reconciliation. Category suggestions may remain with the personal link removed.',
+      supportTitle: 'Support',
+      supportText: 'Questions about account deletion or privacy: nuzhnakseniia@gmail.com. General contact: hello@youneed.app.',
+      footer: '© 2026 YouNeed', footerDelete: 'Delete account', footerContact: 'Support',
+      verifiedAs: 'Verified as {email}. You can now permanently delete this account.',
+      statusCodeSent: 'If an account exists for that email, a verification code was sent. Enter it below.',
+      statusVerified: 'Ownership verified. Confirm deletion to continue.',
+      statusDeleting: 'Deleting your account…',
+      statusDeleted: 'Account deleted.',
+      errEmail: 'Enter a valid email address.',
+      errOtp: 'Enter the verification code from your email.',
+      errVerify: 'Could not verify that code. Request a new one and try again.',
+      errDelete: 'Unable to delete the account. Try again or contact support.',
+      errSession: 'Verification expired. Request a new code.',
+      errConfirm: 'Confirm that you understand this cannot be undone.',
+      errEmailMismatch: 'Verified session email does not match the address you entered. Request a new code.'
+    },
+    LT: {
+      lang: 'LT ▾', badge: 'Google Play paskyros ištrynimas',
+      title: 'Ištrinkite YouNeed paskyrą',
+      lead: 'Prašykite visam laikui ištrinti paskyrą internetu. Prieš trinant patvirtiname nuosavybę vienkartiniu el. pašto kodu — vien el. pašto adreso neužtenka.',
+      formTitle: 'Prašymas ištrinti',
+      formIntro: 'Įveskite YouNeed paskyros el. paštą. Atsiųsime vienkartinį patvirtinimo kodą. Įvedę kodą galėsite visam laikui ištrinti paskyrą.',
+      emailLabel: 'Paskyros el. paštas', sendCode: 'Siųsti patvirtinimo kodą',
+      emailHint: 'Esamos svetainės sesijos nereikia. Nuosavybė įrodoma kodu iš jūsų el. pašto.',
+      otpLabel: 'Patvirtinimo kodas', verify: 'Patvirtinti nuosavybę', resend: 'Siųsti kodą dar kartą',
+      otpHint: 'Patikrinkite gautuosius (ir brukalų) laiškus. Kodas įrodo, kad valdote šį el. paštą.',
+      confirmLabel: 'Suprantu, kad YouNeed paskyra bus ištrinta visam laikui ir to atšaukti negalima.',
+      delete: 'Visam laikui ištrinti paskyrą',
+      confirmHint: 'Ištrynimui naudojamas patvirtintos sesijos žetonas. Pagal el. paštą vieną niekada netriname.',
+      done: 'Jūsų YouNeed paskyra visam laikui ištrinta.', home: 'Grįžti į YouNeed',
+      howTitle: 'Kaip prašyti ištrynimo',
+      how1: 'Programėlėje: Nustatymai → Ištrinti paskyrą (būdami prisijungę).',
+      how2: 'Šiame puslapyje: patvirtinkite nuosavybę kodu ir patvirtinkite ištrynimą.',
+      verifyTitle: 'Kaip patvirtinama nuosavybė',
+      verify1: 'Programėlėje: aktyvi prisijungimo sesija (JWT).',
+      verify2: 'Internete: vienkartinis kodas į paskyros el. paštą, tada trumpa patvirtinta sesija.',
+      verify3: 'Vien el. pašto adresas niekada neleidžia ištrinti paskyros.',
+      deletedTitle: 'Kas ištrinama',
+      deleted1: 'Prisijungimas ir profilis (vardas, telefonas, miestas, avataras, verslo laukai).',
+      deleted2: 'Skelbimai, jūsų aplanko skelbimų nuotraukos, pasiūlymai ir jūsų sukurtos užduotys (jei nereikia kitos šalies istorijai).',
+      deleted3: 'Push žetonai, blokavimai, pranešimai ir tapatybės patikros įrašai.',
+      deleted4: 'Galimybė prisijungti ar pasiekti bet kokius saugomus įrašus po ištrynimo.',
+      retainedTitle: 'Kas gali būti saugoma',
+      retained1: 'Finansiniai įrašai: sandorio id, suma, valiuta, statusas, datos ir mokėjimų nuorodos gali būti saugomi tiek, kiek reikalauja apskaita, mokesčiai, sutikrinimas ir sukčiavimo prevencija pagal taikomą teisę. Tikslūs terminai — pagal tas prievoles (tvirtinti su teisininku), ne vienas terminas viskam. Asmeninės nuorodos pašalinamos.',
+      retained2: 'Ginčai: ginčo įrašai ir bet kokie įrodymai (dabar tekstas; failai — jei/kai bus) gali būti saugomi, kol reikia ginčui ir susijusiems reikalavimams — ne neribotai. Kita šalis mato savo ginčo istoriją.',
+      retained3: 'Atsiliepimai: įvertinimai ir komentarai gali likti kitai šaliai be jūsų tapatybės nuorodos.',
+      retained4: 'Įprasti pokalbiai: tekstas, kurį kita šalis jau gavo, gali likti vykstantiems sandoriams; senesni nei apie 24 mėn. ir nesusiję su atviru ginču / ginčijamu sandoriu gali būti automatiškai išvalyti.',
+      retained5: 'Stripe Connect paskyros id (be el. pašto/vardo) — tik sutikrinimui. Kategorijų siūlymai gali likti be asmeninės nuorodos.',
+      supportTitle: 'Pagalba',
+      supportText: 'Klausimai dėl ištrynimo ar privatumo: nuzhnakseniia@gmail.com. Bendras kontaktas: hello@youneed.app.',
+      footer: '© 2026 YouNeed', footerDelete: 'Ištrinti paskyrą', footerContact: 'Pagalba',
+      verifiedAs: 'Patvirtinta kaip {email}. Dabar galite visam laikui ištrinti šią paskyrą.',
+      statusCodeSent: 'Jei paskyra su šiuo el. paštu egzistuoja, kodas išsiųstas. Įveskite jį žemiau.',
+      statusVerified: 'Nuosavybė patvirtinta. Patvirtinkite ištrynimą.',
+      statusDeleting: 'Paskyra trinama…',
+      statusDeleted: 'Paskyra ištrinta.',
+      errEmail: 'Įveskite galiojantį el. pašto adresą.',
+      errOtp: 'Įveskite patvirtinimo kodą iš el. laiško.',
+      errVerify: 'Nepavyko patvirtinti kodo. Paprašykite naujo ir bandykite dar kartą.',
+      errDelete: 'Nepavyko ištrinti paskyros. Bandykite dar kartą arba susisiekite.',
+      errSession: 'Patvirtinimas baigėsi. Paprašykite naujo kodo.',
+      errConfirm: 'Pažymėkite, kad suprastate — veiksmo atšaukti negalima.',
+      errEmailMismatch: 'Patvirtintos sesijos el. paštas nesutampa su įvestu. Paprašykite naujo kodo.'
+    },
+    RU: {
+      lang: 'RU ▾', badge: 'Удаление аккаунта Google Play',
+      title: 'Удалить аккаунт YouNeed',
+      lead: 'Запросите безвозвратное удаление аккаунта через сайт. Перед удалением мы подтверждаем владение одноразовым кодом на email — одного адреса недостаточно.',
+      formTitle: 'Запрос на удаление',
+      formIntro: 'Введите email аккаунта YouNeed. Мы отправим одноразовый код. После ввода кода можно безвозвратно удалить аккаунт.',
+      emailLabel: 'Email аккаунта', sendCode: 'Отправить код',
+      emailHint: 'Отдельный вход на сайт не нужен. Владение подтверждается кодом из письма.',
+      otpLabel: 'Код подтверждения', verify: 'Подтвердить владение', resend: 'Отправить код снова',
+      otpHint: 'Проверьте входящие и спам. Код доказывает, что вы контролируете этот email.',
+      confirmLabel: 'Я понимаю, что аккаунт YouNeed будет удалён безвозвратно.',
+      delete: 'Безвозвратно удалить аккаунт',
+      confirmHint: 'Удаление выполняется по проверенному сеансовому токену. Email сам по себе никогда не удаляет аккаунт.',
+      done: 'Ваш аккаунт YouNeed безвозвратно удалён.', home: 'На главную YouNeed',
+      howTitle: 'Как запросить удаление',
+      how1: 'В приложении: Настройки → Удалить аккаунт (будучи в аккаунте).',
+      how2: 'На этой странице: подтвердите владение кодом, затем подтвердите удаление.',
+      verifyTitle: 'Как проверяется владение',
+      verify1: 'В приложении: активный сеанс входа (JWT).',
+      verify2: 'На сайте: одноразовый код на email аккаунта, затем короткий проверенный сеанс.',
+      verify3: 'Одного email недостаточно для удаления.',
+      deletedTitle: 'Что удаляется',
+      deleted1: 'Вход и профиль (имя, телефон, город, аватар, поля бизнеса).',
+      deleted2: 'Объявления, фото в вашей папке, предложения и созданные вами задания (если не нужны истории второй стороны).',
+      deleted3: 'Push-токены, блокировки, жалобы и записи проверки личности.',
+      deleted4: 'Возможность войти или получить доступ к сохранённым записям после удаления.',
+      retainedTitle: 'Что может сохраняться',
+      retained1: 'Финансовые записи: id транзакции, сумма, валюта, статус, даты и ссылки платёжного провайдера могут храниться столько, сколько требуют учёт, налоги, сверка и антифрод по применимому праву. Точные сроки — по этим обязанностям (подтвердить с юристом), не один срок для всех данных. Персональные связи удаляются.',
+      retained2: 'Споры: записи спора и любые доказательства (сейчас текст; файлы — если/когда появятся) могут храниться, пока нужны для спора и связанных требований — не бессрочно. Вторая сторона сохраняет доступ к своей истории спора.',
+      retained3: 'Отзывы: оценки и комментарии могут остаться у второй стороны без ссылки на вашу личность.',
+      retained4: 'Обычный чат: текст, который вторая сторона уже получила, может остаться для текущих сделок; сообщения старше примерно 24 месяцев без открытого спора / спорной сделки могут быть автоматически очищены.',
+      retained5: 'Сопоставления Stripe Connect account id (без email/имени) — только для сверки. Предложения категорий могут остаться без персональной привязки.',
+      supportTitle: 'Поддержка',
+      supportText: 'Вопросы об удалении и конфиденциальности: nuzhnakseniia@gmail.com. Общий контакт: hello@youneed.app.',
+      footer: '© 2026 YouNeed', footerDelete: 'Удалить аккаунт', footerContact: 'Поддержка',
+      verifiedAs: 'Подтверждено как {email}. Теперь можно безвозвратно удалить этот аккаунт.',
+      statusCodeSent: 'Если аккаунт с этим email существует, код отправлен. Введите его ниже.',
+      statusVerified: 'Владение подтверждено. Подтвердите удаление.',
+      statusDeleting: 'Удаляем аккаунт…',
+      statusDeleted: 'Аккаунт удалён.',
+      errEmail: 'Введите корректный email.',
+      errOtp: 'Введите код из письма.',
+      errVerify: 'Не удалось проверить код. Запросите новый и попробуйте снова.',
+      errDelete: 'Не удалось удалить аккаунт. Попробуйте снова или напишите в поддержку.',
+      errSession: 'Проверка истекла. Запросите новый код.',
+      errConfirm: 'Подтвердите, что понимаете: действие необратимо.',
+      errEmailMismatch: 'Email проверенной сессии не совпадает с введённым. Запросите новый код.'
+    }
+  };
+
+  const langs = ['EN', 'LT', 'RU'];
+  let lang = 'EN';
+  let t = copy.EN;
+  const OTP_VERIFIED_KEY = 'youneed_delete_otp_verified';
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      // Session only used after a successful OTP verify on this page.
+      persistSession: true,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      flowType: 'pkce'
+    }
+  });
+
+  const el = (id) => document.getElementById(id);
+
+  function clearOtpProof() {
+    try { sessionStorage.removeItem(OTP_VERIFIED_KEY); } catch (_) {}
+  }
+
+  function markOtpProof(email) {
+    try {
+      sessionStorage.setItem(OTP_VERIFIED_KEY, JSON.stringify({
+        email: String(email || '').trim().toLowerCase(),
+        at: Date.now()
+      }));
+    } catch (_) {}
+  }
+
+  function readOtpProof() {
+    try {
+      const raw = sessionStorage.getItem(OTP_VERIFIED_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || !parsed.email || !parsed.at) return null;
+      // OTP proof is short-lived; expired / reused codes are rejected by Supabase,
+      // and this page also drops proof after 30 minutes.
+      if (Date.now() - parsed.at > 30 * 60 * 1000) {
+        clearOtpProof();
+        return null;
+      }
+      return parsed;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function setStatus(kind, message) {
+    const node = el('status');
+    node.className = 'status show ' + kind;
+    node.textContent = message;
+  }
+
+  function clearStatus() {
+    const node = el('status');
+    node.className = 'status';
+    node.textContent = '';
+  }
+
+  function setPhase(phase) {
+    el('phaseEmail').classList.toggle('hidden', phase !== 'email');
+    el('phaseOtp').classList.toggle('hidden', phase !== 'otp');
+    el('phaseConfirm').classList.toggle('hidden', phase !== 'confirm');
+    el('phaseDone').classList.toggle('hidden', phase !== 'done');
+    el('step1pill').classList.toggle('on', phase === 'email' || phase === 'otp');
+    el('step2pill').classList.toggle('on', phase === 'confirm');
+    el('step3pill').classList.toggle('on', phase === 'done');
+  }
+
+  function applyLang() {
+    t = copy[lang];
+    el('lang').textContent = t.lang;
+    el('badge').textContent = t.badge;
+    el('title').textContent = t.title;
+    el('lead').textContent = t.lead;
+    el('formTitle').textContent = t.formTitle;
+    el('formIntro').textContent = t.formIntro;
+    el('emailLabel').textContent = t.emailLabel;
+    el('sendCodeBtn').textContent = t.sendCode;
+    el('emailHint').textContent = t.emailHint;
+    el('otpLabel').textContent = t.otpLabel;
+    el('verifyBtn').textContent = t.verify;
+    el('resendBtn').textContent = t.resend;
+    el('otpHint').textContent = t.otpHint;
+    el('confirmLabel').textContent = t.confirmLabel;
+    el('deleteBtn').textContent = t.delete;
+    el('confirmHint').textContent = t.confirmHint;
+    el('doneText').textContent = t.done;
+    el('homeBtn').textContent = t.home;
+    el('howTitle').textContent = t.howTitle;
+    el('howList').innerHTML = '<li>' + t.how1 + '</li><li>' + t.how2 + '</li>';
+    el('verifyTitle').textContent = t.verifyTitle;
+    el('verifyList').innerHTML = '<li>' + t.verify1 + '</li><li>' + t.verify2 + '</li><li>' + t.verify3 + '</li>';
+    el('deletedTitle').textContent = t.deletedTitle;
+    el('deletedList').innerHTML = '<li>' + t.deleted1 + '</li><li>' + t.deleted2 + '</li><li>' + t.deleted3 + '</li><li>' + t.deleted4 + '</li>';
+    el('retainedTitle').textContent = t.retainedTitle;
+    el('retainedList').innerHTML = '<li>' + t.retained1 + '</li><li>' + t.retained2 + '</li><li>' + t.retained3 + '</li><li>' + t.retained4 + '</li><li>' + t.retained5 + '</li>';
+    el('supportTitle').textContent = t.supportTitle;
+    el('supportText').innerHTML = t.supportText
+      .replace('nuzhnakseniia@gmail.com', '<a href="mailto:nuzhnakseniia@gmail.com">nuzhnakseniia@gmail.com</a>')
+      .replace('hello@youneed.app', '<a href="mailto:hello@youneed.app">hello@youneed.app</a>');
+    el('footer').textContent = t.footer;
+    el('footerDelete').textContent = t.footerDelete;
+    el('footerContact').textContent = t.footerContact;
+    document.documentElement.lang = lang === 'LT' ? 'lt' : lang === 'RU' ? 'ru' : 'en';
+  }
+
+  function validEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+  }
+
+  async function sendCode() {
+    clearStatus();
+    clearOtpProof();
+    await supabase.auth.signOut({ scope: 'local' }).catch(function () {});
+    const email = el('email').value.trim().toLowerCase();
+    if (!validEmail(email)) {
+      setStatus('err', t.errEmail);
+      return;
+    }
+    el('sendCodeBtn').disabled = true;
+    el('resendBtn').disabled = true;
+    try {
+      // OTP proves mailbox control. Email alone never deletes the account.
+      // shouldCreateUser:false — never create a new account from this page.
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+          emailRedirectTo: REDIRECT
+        }
+      });
+      // Same generic message whether or not the account exists (no account oracle).
+      if (error && !/signups not allowed|user not found|unable to find/i.test(error.message || '')) {
+        console.error(error);
+      }
+      el('otp').value = '';
+      setPhase('otp');
+      setStatus('info', t.statusCodeSent);
+    } catch (error) {
+      console.error(error);
+      setPhase('otp');
+      setStatus('info', t.statusCodeSent);
+    } finally {
+      el('sendCodeBtn').disabled = false;
+      el('resendBtn').disabled = false;
+    }
+  }
+
+  async function verifyCode() {
+    clearStatus();
+    const email = el('email').value.trim().toLowerCase();
+    const token = el('otp').value.trim();
+    if (!validEmail(email)) {
+      setStatus('err', t.errEmail);
+      return;
+    }
+    if (!token) {
+      setStatus('err', t.errOtp);
+      return;
+    }
+    el('verifyBtn').disabled = true;
+    try {
+      // Expired or already-used OTPs are rejected by Supabase Auth here.
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
+      el('otp').value = '';
+      if (error || !data.session?.access_token || !data.user?.id) {
+        clearOtpProof();
+        setStatus('err', t.errVerify);
+        return;
+      }
+      const sessionEmail = String(data.session.user.email || data.user.email || '')
+        .trim()
+        .toLowerCase();
+      if (!sessionEmail || sessionEmail !== email) {
+        clearOtpProof();
+        await supabase.auth.signOut({ scope: 'local' }).catch(function () {});
+        setStatus('err', t.errEmailMismatch);
+        setPhase('email');
+        return;
+      }
+      markOtpProof(sessionEmail);
+      el('verifiedAs').textContent = t.verifiedAs.replace('{email}', sessionEmail);
+      setPhase('confirm');
+      setStatus('ok', t.statusVerified);
+    } catch (error) {
+      console.error(error);
+      clearOtpProof();
+      setStatus('err', t.errVerify);
+    } finally {
+      el('verifyBtn').disabled = false;
+    }
+  }
+
+  async function deleteAccount() {
+    clearStatus();
+    if (!el('confirmCheck').checked) {
+      setStatus('err', t.errConfirm);
+      return;
+    }
+    const enteredEmail = el('email').value.trim().toLowerCase();
+    const proof = readOtpProof();
+    if (!proof || proof.email !== enteredEmail) {
+      clearOtpProof();
+      setStatus('err', t.errSession);
+      setPhase('email');
+      return;
+    }
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.access_token) {
+      clearOtpProof();
+      setStatus('err', t.errSession);
+      setPhase('email');
+      return;
+    }
+    const sessionEmail = String(session.user?.email || '').trim().toLowerCase();
+    if (!sessionEmail || sessionEmail !== enteredEmail || sessionEmail !== proof.email) {
+      clearOtpProof();
+      await supabase.auth.signOut({ scope: 'local' }).catch(function () {});
+      setStatus('err', t.errEmailMismatch);
+      setPhase('email');
+      return;
+    }
+    el('deleteBtn').disabled = true;
+    setStatus('info', t.statusDeleting);
+    try {
+      const response = await fetch(DELETE_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + session.access_token,
+          apikey: SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json'
+        },
+        // Email in body is never used for authorization by the Edge Function.
+        body: JSON.stringify({ confirm: true })
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('delete-account failed', response.status, text);
+        setStatus('err', t.errDelete);
+        el('deleteBtn').disabled = false;
+        return;
+      }
+      clearOtpProof();
+      await supabase.auth.signOut();
+      setPhase('done');
+      setStatus('ok', t.statusDeleted);
+    } catch (error) {
+      console.error(error);
+      setStatus('err', t.errDelete);
+      el('deleteBtn').disabled = false;
+    }
+  }
+
+  el('lang').addEventListener('click', function () {
+    lang = langs[(langs.indexOf(lang) + 1) % langs.length];
+    applyLang();
+    if (!el('phaseConfirm').classList.contains('hidden')) {
+      const email = el('email').value.trim() || '…';
+      el('verifiedAs').textContent = t.verifiedAs.replace('{email}', email);
+    }
+  });
+  el('sendCodeBtn').addEventListener('click', sendCode);
+  el('resendBtn').addEventListener('click', sendCode);
+  el('verifyBtn').addEventListener('click', verifyCode);
+  el('deleteBtn').addEventListener('click', deleteAccount);
+  el('confirmCheck').addEventListener('change', function () {
+    el('deleteBtn').disabled = !el('confirmCheck').checked;
+  });
+
+  // Always start at email entry. Do not resume an old login session into
+  // deletion confirm — ownership must be proven with a fresh OTP on this page.
+  clearOtpProof();
+  supabase.auth.signOut({ scope: 'local' }).catch(function () {});
+  applyLang();
+  setPhase('email');
+})();
+</script>
+</body>
+</html>
