@@ -516,5 +516,3 @@ async function handleIntelClick(event, action, button) {
   }
   return false;
 }
-
-if (typeof startAdmin === 'function') startAdmin();

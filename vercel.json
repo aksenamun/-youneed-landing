@@ -15,6 +15,14 @@
     {
       "source": "/delete-account/",
       "destination": "/delete-account.html"
+    },
+    {
+      "source": "/admin/users/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/users/:id/",
+      "destination": "/admin/index.html"
     }
   ]
 }

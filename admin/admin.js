@@ -286,6 +286,10 @@ function identityText(card) {
 
 function openRecord(section, id) {
   if (section === 'users') {
+    if (typeof openCrmUser === 'function') {
+      openCrmUser(id);
+      return;
+    }
     state.users.selected = id;
     state.users.activityPage = {};
   } else if (section === 'listings') {
@@ -413,8 +417,13 @@ function show(name) {
 
 function setSection(section) {
   state.section = section;
+  // Sidebar / hash navigation always leaves CRM. openCrmUser sets selection itself.
+  state.users.selected = null;
   const title = $('title');
   if (title) title.textContent = SECTION_TITLES[section] || 'Admin';
+  if (location.pathname.indexOf('/admin/users/') === 0) {
+    history.pushState({}, '', '/admin/');
+  }
   location.hash = section;
   document.querySelectorAll('.sidebar button[data-section]').forEach((button) => {
     button.setAttribute('aria-current', button.dataset.section === section ? 'page' : 'false');
@@ -479,7 +488,17 @@ async function renderSection() {
   if (typeof loadCityOptions === 'function') await loadCityOptions();
   try {
     if (state.section === 'dashboard') await renderDashboard(root);
-    else if (state.section === 'users') await renderUsers(root);
+    else if (state.section === 'users') {
+      const route = typeof parseAdminRoute === 'function' ? parseAdminRoute() : { crmId: state.users.selected };
+      if (route.crmId && typeof renderCrmProfile === 'function') {
+        state.users.selected = route.crmId;
+        await renderCrmProfile(root, route.crmId);
+      } else if (typeof renderCrmDirectory === 'function') {
+        await renderCrmDirectory(root);
+      } else {
+        await renderUsers(root);
+      }
+    }
     else if (state.section === 'listings') await renderListings(root);
     else if (state.section === 'offers') await renderOffers(root);
     else if (state.section === 'deals') await renderDeals(root);
@@ -1790,8 +1809,15 @@ async function enter() {
   }
   show('shell');
   applyRoleNav();
-  const requested = (location.hash || '#dashboard').slice(1) || 'dashboard';
-  setSection(roleAllows(requested) ? requested : 'dashboard');
+  const route = typeof parseAdminRoute === 'function'
+    ? parseAdminRoute()
+    : { section: (location.hash || '#dashboard').slice(1) || 'dashboard', crmId: null };
+  const section = roleAllows(route.section) ? route.section : 'dashboard';
+  if (section === 'users' && route.crmId && typeof openCrmUser === 'function') {
+    openCrmUser(route.crmId);
+  } else {
+    setSection(section);
+  }
 }
 
 document.addEventListener('click', async (event) => {
@@ -1802,6 +1828,7 @@ document.addEventListener('click', async (event) => {
     return;
   }
   const action = button.dataset.action;
+  if (typeof handleCrmClick === 'function' && await handleCrmClick(action, button)) return;
   if (typeof handleIntelClick === 'function' && await handleIntelClick(event, action, button)) return;
   if (action === 'logout') {
     logout();
@@ -1888,6 +1915,10 @@ document.addEventListener('click', async (event) => {
     return;
   }
   if (action === 'select-user') {
+    if (typeof openCrmUser === 'function') {
+      openCrmUser(button.dataset.id);
+      return;
+    }
     state.users.selected = button.dataset.id;
     state.users.activityPage = {};
     renderSection();
