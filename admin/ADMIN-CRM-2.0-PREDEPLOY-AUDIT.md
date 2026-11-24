@@ -3,15 +3,45 @@
 **Project:** `/Users/kseniia/-youneed-landing`  
 **Date:** 2026-11-25  
 **Scope:** Web Admin CRM 2.0 source only  
-**Actions not taken:** deploy, publish, EAS, commit, push, SQL migrations, Stripe changes  
+**Actions not taken:** EAS, SQL migrations, Stripe changes, landing-page publish  
 
 ---
 
 ## Overall publication readiness
 
-**CONDITIONAL PASS — ready for publication after owner deploy + hard-refresh verification.**
+**DEPLOYED to production.** Static audit **PASS**. Unauthenticated browser smoke **PASS** (assets, rewrite, globals, no console errors). **Authenticated CRM flows (Users → Open CRM → tabs) remain owner-verified** — no admin credentials were available in this session.
 
-Static/syntax audit of CRM wiring **PASS**. Two runtime risks found during this audit were **corrected in source** before this report (see § Corrections). **Browser behavior is NOT VERIFIED** (no live Admin session exercised in this pass).
+---
+
+## Deployment record
+
+| Field | Value |
+|---|---|
+| Git commit | `02cde984ce18d6d014f39e908d683dfdfe29cfc7` |
+| Commit message | Publish Web Admin CRM 2.0 dedicated customer profiles. |
+| Production URL | https://www.youneed.lt/admin/ |
+| Pretty CRM route | https://www.youneed.lt/admin/users/:id |
+| GitHub Deployment ID | `8044161547` |
+| Vercel deployment URL | https://youneedlanding-9qtreljfl-you-need.vercel.app |
+| Vercel status | **success** — “Deployment has completed” (2026-11-24T23:57:53Z) |
+| Deploy method | Git push to `origin/main` (SSH); Vercel production auto-deploy |
+
+### Included in the publish commit (CRM only)
+
+`admin/admin-crm.js`, `admin/admin-boot.js`, `admin/admin.js` (CRM wiring only), `admin/admin-intel.js` (`startAdmin` removal only), `admin/admin.css`, `admin/index.html`, `vercel.json`, audit/status/gaps markdown.
+
+### Explicitly excluded from the publish commit
+
+- Root `index.html` (landing delete-account link) — left uncommitted  
+- Payment settings / finance Stripe overview UI in working-tree `admin.js` / `admin-intel.js` — restored after commit, **not** published  
+- `admin/sql/`, `admin/review-package/`, `.DS_Store`  
+
+### Pre-deploy fix confirmation (live)
+
+| Fix | Live asset |
+|---|---|
+| hashchange loop / `setSection` selection clear | Present in production `admin-boot.js` + `admin.js` |
+| Reports missing-RPC honest message | Present in production `admin-crm.js` |
 
 ---
 
@@ -128,13 +158,31 @@ Static enumeration of CRM `data-action` values → all handled by `handleCrmClic
 
 ---
 
-## Owner actions before / after publish
+## Post-deploy smoke test (2026-11-25)
 
-1. **Publish** updated `admin/` assets + `vercel.json` when approved (this audit does not deploy).  
-2. Hard-refresh Admin; open **Users → Open CRM**; confirm directory has no inline expansion.  
-3. Spot-check: back navigation, one moderation dry-run cancel, listings tab, Deals vs Payments, load messages on a known deal.  
-4. Confirm `/admin/users/<uuid>` loads after rewrite is live (hash route works even without rewrite).  
-5. Do not enable Stripe LIVE or apply SQL as part of this CRM publish.
+| Check | Result | Evidence |
+|---|---|---|
+| Deployment completed successfully | **PASS** | GitHub deployment `8044161547` state `success` |
+| `admin-crm.js` / `admin-boot.js` live | **PASS** | HTTP 200 on www.youneed.lt |
+| Admin index loads CRM scripts | **PASS** | Script tags include admin-crm.js + admin-boot.js |
+| `/admin/users/:id` rewrite | **PASS** | HTTP 200 HTML; browser URL kept; `parseAdminRoute()` → `{ section:'users', crmId }` |
+| CRM globals present | **PASS** | `openCrmUser`, `parseAdminRoute`, `renderCrmProfile`, `handleCrmClick`, `startAdmin` are functions |
+| Asset network load | **PASS** | admin.js/css/crm/boot/intel/catalog all 200 |
+| Console / unhandled errors (login page) | **PASS** | No errors / rejections observed |
+| Login screen still works | **PASS** | Browser opened production Admin login |
+| Users directory (authenticated) | **NOT VERIFIED** | No admin credentials in session |
+| Open CRM / profile / all tabs | **NOT VERIFIED** | Requires signed-in administrator |
+| Back navigation | **NOT VERIFIED** | Requires signed-in administrator |
+| Dashboard (authenticated) | **NOT VERIFIED** | Requires signed-in administrator |
+
+---
+
+## Owner actions remaining
+
+1. Hard-refresh https://www.youneed.lt/admin/ and sign in.  
+2. Confirm **Users → Open CRM**, all tabs, back navigation, Deals vs Payments.  
+3. Do not enable Stripe LIVE or apply SQL as part of this CRM publish.  
+4. Uncommitted local work still present: payment settings / finance UI in `admin.js` + `admin-intel.js`, and landing `index.html` — preserved, not published.
 
 ---
 
@@ -143,6 +191,8 @@ Static enumeration of CRM `data-action` values → all handled by `handleCrmClic
 | Gate | Result |
 |---|---|
 | Source / static CRM audit | **PASS** |
-| Known runtime blockers in CRM boot/nav | **PASS** (fixed in this audit) |
-| Browser / production UI confirmation | **NOT VERIFIED** |
-| Ready for publication? | **YES — conditional** on owner deploy + post-deploy smoke test |
+| Known runtime blockers in CRM boot/nav | **PASS** (fixed before publish) |
+| Production deploy | **PASS** — live on www.youneed.lt |
+| Unauthenticated browser smoke | **PASS** |
+| Authenticated CRM UI confirmation | **NOT VERIFIED** (owner sign-in required) |
+| Ready / published? | **YES — published**; owner should complete authenticated smoke |
