@@ -83,7 +83,7 @@ footer{border-top:1px solid var(--line);padding:28px 24px;color:var(--muted);fon
 </section>
 </main>
 
-<footer><div class="foot"><span id="footer">© 2026 YouNeed.app</span><span><a id="privacy" href="#">Privacy</a> · <a id="terms" href="#">Terms</a> · <a id="contact" href="mailto:hello@youneed.app">Contact</a></span></div></footer>
+<footer><div class="foot"><span id="footer">© 2026 YouNeed.app</span><span><a id="privacy" href="/privacy">Privacy</a> · <a id="terms" href="/terms">Terms</a> · <a href="/support" id="supportLink">Support</a> · <a href="/delete-account" id="deleteAccount">Delete account</a> · <a id="contact" href="mailto:hello@youneed.app">Contact</a></span></div></footer>
 
 <script>
 const translations = {
@@ -111,7 +111,7 @@ const translations = {
     plus:"PLUS", perMonth:"/ month", plusText:"More connections, smarter discovery and extra features.",
     payg:"PAY AS YOU GO", commission:"Commission", paygText:"Use online payments when you want a simple in-app transaction.",
     finalTitle:"Whatever you need.<br>There’s someone.", launching:"YouNeed.app — launching soon.", waitlist:"Join the waitlist",
-    privacy:"Privacy", terms:"Terms", contact:"Contact", footer:"© 2026 YouNeed.app"
+    privacy:"Privacy", terms:"Terms", deleteAccount:"Delete account", contact:"Contact", footer:"© 2026 YouNeed.app"
   },
   LT: {
     navHow:"Kaip tai veikia", navMatch:"Smart Match", navPlans:"Planai",
@@ -137,7 +137,7 @@ const translations = {
     plus:"PLUS", perMonth:"/ mėn.", plusText:"Daugiau kontaktų, išmanesnės rekomendacijos ir papildomos funkcijos.",
     payg:"MOKĖKITE UŽ OPERACIJĄ", commission:"Komisinis mokestis", paygText:"Naudokite mokėjimus internetu, kai norite paprasto atsiskaitymo programėlėje.",
     finalTitle:"Ko jums reikia?<br>Kažkas gali padėti.", launching:"YouNeed.app — netrukus.", waitlist:"Prisijungti prie laukiančiųjų",
-    privacy:"Privatumas", terms:"Taisyklės", contact:"Kontaktai", footer:"© 2026 YouNeed.app"
+    privacy:"Privatumas", terms:"Taisyklės", deleteAccount:"Ištrinti paskyrą", contact:"Kontaktai", footer:"© 2026 YouNeed.app"
   },
   RU: {
     navHow:"Как это работает", navMatch:"Smart Match", navPlans:"Тарифы",
@@ -163,7 +163,7 @@ const translations = {
     plus:"PLUS", perMonth:"/ месяц", plusText:"Больше контактов, умные рекомендации и дополнительные возможности.",
     payg:"ОПЛАТА ЗА СДЕЛКУ", commission:"Комиссия", paygText:"Используйте онлайн-оплату, когда хотите провести сделку прямо в приложении.",
     finalTitle:"Что бы вам ни понадобилось.<br>Кто-то сможет помочь.", launching:"YouNeed.app — скоро запуск.", waitlist:"Встать в лист ожидания",
-    privacy:"Конфиденциальность", terms:"Условия", contact:"Контакты", footer:"© 2026 YouNeed.app"
+    privacy:"Конфиденциальность", terms:"Условия", deleteAccount:"Удалить аккаунт", contact:"Контакты", footer:"© 2026 YouNeed.app"
   }
 };
 
@@ -179,7 +179,7 @@ const ids = {
   nearbyTag:"nearbyTag", budgetTag:"budgetTag", availableTag:"availableTag", relevantTag:"relevantTag", goodTag:"goodTag",
   plansTitle:"plansTitle", plansSub:"plansSub", free:"free", freeText:"freeText",
   plus:"plus", perMonth:"perMonth", plusText:"plusText", payg:"payg", commission:"commission", paygText:"paygText",
-  finalTitle:"finalTitle", launching:"launching", waitlist:"waitlist", privacy:"privacy", terms:"terms", contact:"contact", footer:"footer"
+  finalTitle:"finalTitle", launching:"launching", waitlist:"waitlist", privacy:"privacy", terms:"terms", deleteAccount:"deleteAccount", contact:"contact", footer:"footer"
 };
 function applyLanguage(lang){
   current=lang;
