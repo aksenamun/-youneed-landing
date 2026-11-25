@@ -3,6 +3,7 @@
 **Date:** 2026-11-25  
 **Repository:** `/Users/kseniia/-youneed-landing`  
 **Goal:** Publish `/privacy`, `/terms`, `/support` on `www.youneed.lt`  
+**Status:** **PUBLISHED** — production HTTP 200 verified  
 
 ---
 
@@ -35,10 +36,13 @@
 
 | Field | Value |
 |---|---|
-| Method | Git push to `origin/main` (Vercel production auto-deploy — same as prior landing deploys) |
-| Scope committed | Legal pages only — **not** dirty Admin CRM Customer 360 working tree |
-| Commit | _(filled after push)_ |
-| Production URLs | https://www.youneed.lt/privacy · /terms · /support |
+| Method | Git push to `origin/main` (SSH); Vercel production auto-deploy |
+| Git commit | `bb40ddeb6523d171bff197666c31018aa51103e7` |
+| Commit message | Publish public Privacy, Terms, and Support pages on youneed.lt. |
+| GitHub Deployment ID | `8069599303` |
+| Vercel deployment URL | https://youneedlanding-lpvxxnc35-you-need.vercel.app |
+| Vercel status | Ready · Production |
+| Custom domain | https://www.youneed.lt |
 
 ### Included in publish commit
 
@@ -56,17 +60,15 @@
 
 ## HTTP verification (production)
 
-_(filled after deploy)_
+| URL | Result |
+|---|---|
+| https://www.youneed.lt/privacy | **200** — contains Privacy Policy, §15 Google Gemini, narrowed analytics wording, contact email |
+| https://www.youneed.lt/terms | **200** — Terms of Use + contact |
+| https://www.youneed.lt/support | **200** — links to `/privacy`, `/terms`, `/delete-account` |
+| https://www.youneed.lt/ | **200** — footer links `/privacy`, `/terms`, `/support` |
+| https://www.youneed.lt/delete-account | **200** — footer links `/privacy`, `/terms`, `/support` |
 
-| URL | Expected | Result |
-|---|---|---|
-| https://www.youneed.lt/privacy | 200 | |
-| https://www.youneed.lt/terms | 200 | |
-| https://www.youneed.lt/support | 200 | |
-| https://www.youneed.lt/ | 200 | |
-| https://www.youneed.lt/delete-account | 200 | |
-
-Footer checks (homepage + delete-account): links to `/privacy`, `/terms`, `/support` present in source; re-verified live after deploy.
+Local rewrite checks before push also returned 200 for `/privacy`, `/terms`, `/support`.
 
 ---
 
